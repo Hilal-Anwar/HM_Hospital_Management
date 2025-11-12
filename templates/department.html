@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+            crossorigin="anonymous"></script>
+    <title>Department</title>
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">HM Hospital</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Department of Oncology</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active link-warning link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
+                           aria-current="page" href="#">Edit Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active link-danger link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
+                           aria-current="page" href="#">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<div class="card mb-3 m-1 ">
+    <div class="card-body">
+        <h5 class="card-title">Overview</h5>
+        <p>
+            Oncology is the branch of medicine dedicated to the study, diagnosis, treatment, and prevention of cancer.
+            This field encompasses various approaches to cancer care, including medical oncology (using drugs),
+            radiation oncology (using radiation), and surgical oncology (using surgery). Oncologists lead
+            multidisciplinary teams to provide care for patients from diagnosis through treatment and follow-up
+        </p>
+    </div>
+</div>
+<div class="card mb-3 m-1 ">
+    <div class="card-body">
+        <h5 class="card-title">Doctors' List</h5>
+        <div class="list-group">
+            <div class="list-group-item" style="display: flex">
+                <div class="d-flex align-items-center container-fluid">
+                    <p class="mb-0">Dr Aisha</p>
+                </div>
+                <div class="d-flex align-items-center justify-content-end container-fluid">
+                     <button type="button" class="btn btn-outline-primary m-1" data-bs-toggle="modal" data-bs-target="#checkAvailability">Check Availability</button>
+                    <button type="button" class="btn btn-outline-primary m-1">View Details</button>
+                </div>
+            </div>
+            <div class="list-group-item" style="display: flex">
+                <div class="d-flex align-items-center container-fluid">
+                    <p class="mb-0">Dr abcd</p>
+                </div>
+                <div class="d-flex align-items-center justify-content-end container-fluid">
+                    <button type="button" class="btn btn-outline-primary m-1">Check Availability</button>
+                    <button type="button" class="btn btn-outline-primary m-1">View Details</button>
+                </div>
+            </div>
+            <div class="list-group-item" style="display: flex">
+                <div class="d-flex align-items-center container-fluid">
+                    <p class="mb-0">Dr pqrst</p>
+                </div>
+                <div class="d-flex align-items-center justify-content-end container-fluid">
+                      <button type="button" class="btn btn-outline-primary m-1">Check Availability</button>
+                    <button type="button" class="btn btn-outline-primary m-1">View Details</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="checkAvailability" tabindex="-1" aria-labelledby="checkAvailabilityLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="checkAvailabilityLabel">Doctor Availability</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group">
+                    <div class="container text-center">
+                        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 gx-2 gy-1">
+                            <!-- horizontal & vertical gaps -->
+                            <div class="col">
+                                <div class="border border-primary  rounded p-2 bg-white">
+                                    21/01/2025
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="border border-success  rounded p-2 bg-white">
+                                    08:00 - 12:00 am
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="border border-success rounded p-2 bg-white">
+                                    04:00 - 09:00 pm
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="border border-primary  rounded p-2 bg-white">
+                                    21/01/2025
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="border border-success  rounded p-2 bg-white">
+                                    08:00 - 12:00 am
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="border border-success rounded p-2 bg-white">
+                                    04:00 - 09:00 pm
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

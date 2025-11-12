@@ -11,6 +11,96 @@
     <title>Patient Dashboard</title>
 </head>
 <body>
-
+<header>
+    <header>
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">HM Hospital</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Welcome, Mr Black</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active link-warning link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
+                               aria-current="page" href="#">Edit Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
+                               aria-current="page" href="#">History</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active link-danger link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
+                               aria-current="page" href="#">Logout</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+</header>
+<div class="card mb-3 m-1 ">
+    <div class="card-body">
+        <h5 class="card-title">Departments</h5>
+        <div class="list-group">
+            <div class="list-group-item" style="display: flex">
+                <div class="d-flex align-items-center container-fluid">
+                    <p class="mb-0">Cardiology</p>
+                </div>
+                <div class="d-flex align-items-center justify-content-end container-fluid">
+                    <button type="button" class="btn btn-outline-primary m-1">View Details</button>
+                </div>
+            </div>
+            <div class="list-group-item" style="display: flex">
+                <div class="d-flex align-items-center container-fluid">
+                    <p class="mb-0">Oncology</p>
+                </div>
+                <div class="d-flex align-items-center justify-content-end container-fluid">
+                    <button type="button" class="btn btn-outline-primary m-1">View Details</button>
+                </div>
+            </div>
+            <div class="list-group-item" style="display: flex">
+                <div class="d-flex align-items-center container-fluid">
+                    <p class="mb-0">General</p>
+                </div>
+                <div class="d-flex align-items-center justify-content-end container-fluid">
+                    <button type="button" class="btn btn-outline-primary m-1">View Details</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card mb-3 m-1 ">
+    <div class="card-body">
+        <h5 class="card-title">Upcoming Appointment</h5>
+        <table class="table table-bordered text-center">
+            <tr>
+                <th>Sr No.</th>
+                <th>Doctor Name</th>
+                <th>Department</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Action</th>
+            </tr>
+            <tr>
+                <td>1001.</td>
+                <td>Mr. Aisha</td>
+                <td>General</td>
+                <td>24/09/2025</td>
+                <td>
+                    08 am - 12 pm
+                </td>
+                <td> <button type="button" class="btn btn-outline-danger m-1">Cancel</button></td>
+            </tr>
+        </table>
+    </div>
+</div>
 </body>
 </html>
