@@ -21,7 +21,7 @@ with app.app_context():
 # Redirect root to /user
 @app.route('/')
 def index():
-    return render_template("admin_view.html")
+    return render_template("login.html")
 
 
 @app.route("/users")
