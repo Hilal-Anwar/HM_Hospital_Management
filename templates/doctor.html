@@ -23,7 +23,7 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">Welcome, Dr Aisha</a>
+                        <a class="nav-link active" aria-current="page" href="#">Welcome, {{ doctor['doctor_name'] }}</a>
                     </li>
                 </ul>
                 <form class="d-flex" role="search">
@@ -43,19 +43,21 @@
                 <th>Patient History</th>
                 <th>Action</th>
             </tr>
-            <tr>
-                <td>1001.</td>
-                <td>Mr. Black</td>
-                <td>
-                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
-                            data-bs-target="#updatePatient">Update
-                    </button>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-outline-success">Mark a complete</button>
-                    <button type="button" class="btn btn-outline-danger">Cancel</button>
-                </td>
-            </tr>
+            {% for pt in patients %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ pt.patient_name }}</td>
+                    <td>
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                                data-bs-target="#updatePatient">Update
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-outline-success">Mark a complete</button>
+                        <button type="button" class="btn btn-outline-danger">Cancel</button>
+                    </td>
+                </tr>
+            {% endfor %}
         </table>
     </div>
 </div>
@@ -63,32 +65,18 @@
     <div class="card-body">
         <h5 class="card-title">Assigned Patients</h5>
         <div class="list-group" style="max-height: 400px;overflow-y: auto;">
-            <div class="list-group-item" style="display: flex">
-                <div class="d-flex align-items-center container-fluid">
-                    <p class="mb-0">Mr Black</p>
+            {% for p in patients %}
+                <div class="list-group-item" style="display: flex">
+                    <div class="d-flex align-items-center container-fluid">
+                        <p class="mb-0">{{ p.patient_name }}</p>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-end container-fluid">
+                        <button type="button" class="btn btn-outline-primary m-1" data-bs-toggle="modal"
+                                data-bs-target="#patientHistory">View
+                        </button>
+                    </div>
                 </div>
-                <div class="d-flex align-items-center justify-content-end container-fluid">
-                    <button type="button" class="btn btn-outline-primary m-1" data-bs-toggle="modal"
-                            data-bs-target="#patientHistory">View
-                    </button>
-                </div>
-            </div>
-            <div class="list-group-item" style="display: flex">
-                <div class="d-flex align-items-center container-fluid">
-                    <p class="mb-0">Miss Bekaa</p>
-                </div>
-                <div class="d-flex align-items-center justify-content-end container-fluid">
-                    <button type="button" class="btn btn-outline-primary m-1">View</button>
-                </div>
-            </div>
-            <div class="list-group-item" style="display: flex">
-                <div class="d-flex align-items-center container-fluid">
-                    <p class="mb-0">Miss Zikra</p>
-                </div>
-                <div class="d-flex align-items-center justify-content-end container-fluid">
-                    <button type="button" class="btn btn-outline-primary m-1">View</button>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
@@ -155,7 +143,7 @@
 </div>
 <form action="/user/update_patient" method="POST" id="create-form">
     <div class="modal fade" id="updatePatient" tabindex="-1" aria-labelledby="patientModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h1 class="modal-title fs-5" id="patientModalLabel">Update Patient History</h1>
@@ -164,19 +152,67 @@
                 <div class="modal-body">
                     <p>Patient Name: Mr. Black</p>
                     <p>Department: Cardiology</p>
-                    <div class="mb-3">
-                        <label for="exampleInputUsername" class="form-label">Fullname</label>
-                        <input type="text" class="form-control" id="exampleInputUsername" name="username">
+                    <div class="col-md-12 d-flex">
+                        <div class="mb-3 container-fluid">
+                            <label for="exampleInputUsername" class="form-label">Visit Type</label>
+                            <input type="text" class="form-control" id="exampleInputUsername" name="username">
+                        </div>
+                        <div class="mb-3 mx-2 container-fluid">
+                            <label for="exampleInputEmail1" class="form-label">Test Done</label>
+                            <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"
+                                   name="specialization" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="diagnosis" class="form-label">Diagnosis</label>
+                            <textarea class="form-control" id="diagnosis" rows="3"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Medicines</label>
+                            <div class="medicines-box">
+                                <div class="d-flex align-items-center">
+                                    <select class="form-select mx-1 my-1" name="department_id"
+                                            aria-label="Default select example">
+                                        <option selected>Select Department</option>
+                                        {% for me in medicine_name %}
+                                            <option value="{{ loop.index }}">{{ me.medicine_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <input type="text" class="form-control" id="exampleInputEmail1"
+                                           aria-describedby="emailHelp"
+                                           name="experience">
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <select class="form-select mx-1 my-1" name="department_id"
+                                            aria-label="Default select example">
+                                        <option selected>Select Department</option>
+                                        {% for me in medicine_name %}
+                                            <option value="{{ loop.index }}">{{ me.medicine_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <input type="text" class="form-control" id="exampleInputEmail1"
+                                           aria-describedby="emailHelp"
+                                           name="experience">
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <select class="form-select mx-1 my-1" name="department_id"
+                                            aria-label="Default select example">
+                                        <option selected>Select Department</option>
+                                        {% for me in medicine_name %}
+                                            <option value="{{ loop.index }}">{{ me.medicine_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <input type="text" class="form-control" id="exampleInputEmail1"
+                                           aria-describedby="emailHelp"
+                                           name="experience">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label for="exampleInputEmail1" class="form-label">Specialization/Department</label>
-                        <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"
-                               name="specialization" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="exampleInputEmail1" class="form-label">Experience in years</label>
-                        <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"
-                               name="experience" required>
+                        <label for="exampleInputEmail1" class="form-label">Prescription</label>
+                        <textarea class="form-control" id="exampleInputEmail1" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
