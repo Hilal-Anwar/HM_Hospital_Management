@@ -1,15 +1,17 @@
-from datetime import datetime
+import random
+from datetime import datetime, timedelta
 
 from flask import Flask, render_template, redirect, url_for, request, json
-from model import db, User, Department, Doctor, Patient, Appointment, Medicine
+from model import db, User, Department, Doctor, Patient, Appointments, Medicine, Treatments, DoctorsUnavailability
 from sqlalchemy.orm import aliased
 
 # create the app
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.sqlite3"
-
+app.jinja_env.globals['datetime'] = __import__('datetime')
 db.init_app(app)
-
+today = datetime.today()
+date_list = [(today + timedelta(days=i)).strftime('%d-%m-%Y') for i in range(7)]
 with app.app_context():
     db.create_all()
     if not User.query.filter_by(username="admin").first():
@@ -90,8 +92,7 @@ def login():
             user = User.query.filter_by(username=u_name, password=u_pass).first()
             if user:
                 if u_name == "admin" and u_pass == "admin" and user.type == "admin":
-                    return render_template("admin_view.html", departments=Department.query.all(),
-                                           doctors=Doctor.query.all(), patients=Patient.query.all())
+                    return redirect(url_for("admin_view"))
                 elif user.type == "doctor":
                     return redirect(
                         url_for("doctor_view", doctor_id=Doctor.query.filter_by(user_id=user.id).first().doctor_id))
@@ -104,9 +105,43 @@ def login():
         return render_template("error.html")
 
 
+@app.route("/user/admin")
+def admin_view():
+    a = aliased(Appointments)
+    p = aliased(Patient)
+    d = aliased(Doctor)
+    dept = aliased(Department)
+
+    query = (
+        db.session.query(
+            a.appointment_id,
+            a.appointment_date,
+            a.appointment_time,
+            p.patient_name,
+            d.doctor_name,
+            d.experience,
+            dept.department_name,
+            dept.department_description
+        )
+        .join(p, a.patient_id == p.patient_id)
+        .join(d, a.doctor_id == d.doctor_id)
+        .join(dept, a.department_id == dept.department_id)
+    )
+
+    results = query.all()
+    treatment = (
+        db.session.query(Treatments.appointment_id, Treatments.prescription, Treatments.medicine_dose,
+                         Treatments.diagnosis, Treatments.test_done,
+                         Treatments.visit_type).join(Appointments,
+                                                     Treatments.appointment_id == Appointments.appointment_id).all())
+    return render_template("admin_view.html", departments=Department.query.all(),
+                           doctors=Doctor.query.all(), patients=Patient.query.all(),
+                           appointments=results,treatment=treatment)
+
+
 @app.route("/patient/<int:patient_id>")
 def patient_view(patient_id):
-    a = aliased(Appointment)
+    a = aliased(Appointments)
     p = aliased(Patient)
     d = aliased(Doctor)
     dept = aliased(Department)
@@ -136,20 +171,43 @@ def patient_view(patient_id):
 @app.route("/doctor/<int:doctor_id>")
 def doctor_view(doctor_id):
     patients = (
-        db.session.query(Patient.patient_name, Appointment.appointment_date, Appointment.appointment_time,
-                         Appointment.appointment_id)
-        .join(Appointment, Patient.patient_id == Appointment.patient_id)
-        .filter(Appointment.doctor_id == doctor_id)
+        db.session.query(Patient.patient_name, Appointments.appointment_date, Appointments.appointment_time,
+                         Appointments.appointment_id)
+        .join(Appointments, Patient.patient_id == Appointments.patient_id)
+        .filter(Appointments.doctor_id == doctor_id)
         .all()
     )
-
-    for patient in patients:
-        print(patient.appointment_date)
-
-    return render_template("doctor.html", doctor=Doctor.query.filter_by(doctor_id=doctor_id).first(),
+    dr = Doctor.query.filter_by(doctor_id=doctor_id).first()
+    treatment = (
+        db.session.query(Treatments.appointment_id, Treatments.prescription, Treatments.medicine_dose,
+                         Treatments.diagnosis, Treatments.test_done,
+                         Treatments.visit_type).join(Appointments,
+                                                     Treatments.appointment_id == Appointments.appointment_id).filter(
+            Appointments.doctor_id == doctor_id).all())
+    print(treatment)
+    doctors_availability = get_doctor_availability(doctor_id)
+    print(doctors_availability)
+    return render_template("doctor.html", doctor=dr,
                            patients=patients,
-                           appointments=Appointment.query.filter_by(doctor_id=doctor_id).all(),
-                           medicine_name=Medicine.query.all())
+                           appointments=Appointments.query.filter_by(doctor_id=doctor_id).all(),
+                           medicine_name=Medicine.query.all(), doctor_dept=Department.query.filter_by(
+            department_id=dr.department_id).first().department_name, treatment=treatment,
+                           doctors_availability=doctors_availability)
+
+
+def get_doctor_availability(doctor_id):
+    doctors_availability = dict(dict())
+    for d in date_list:
+        record = (
+            db.session.query(DoctorsUnavailability)
+            .filter_by(date=datetime.strptime(d, "%d-%m-%Y").date(), doctor_id=doctor_id)
+            .one_or_none()
+        )
+        if record:
+            doctors_availability[d] = {"slot1": record.slot1, "slot2": record.slot2}
+        else:
+            doctors_availability[d] = {"slot1": 1, "slot2": 1}
+    return doctors_availability
 
 
 @app.route("/user/register", methods=["GET", "POST"])
@@ -241,9 +299,25 @@ def department(dpt_id, p_id):
         doctor_ids = dept.doctor_list
     if isinstance(doctor_ids, str):
         doctor_ids = json.loads(doctor_ids)
-
+    list_of_doctors_availability = dict()
+    for dr_id in doctor_ids:
+        list_of_doctors_availability[dr_id] = get_doctor_availability(dr_id)
     return render_template("department.html", department=dept, patient=p_id,
-                           doctors=Doctor.query.filter(Doctor.doctor_id.in_(doctor_ids)).all())
+                           doctors=Doctor.query.filter(Doctor.doctor_id.in_(doctor_ids)).all(),
+                           doctors_availability=list_of_doctors_availability)
+
+
+@app.route('/user/dept', methods=["POST"])
+def department_add():
+    if request.method == "POST":
+        dept_name = request.form["dept_name"]
+        dept_dis = request.form["dept_description"]
+        new_department = Department(
+            department_name=dept_name,
+            department_description=dept_dis)
+        db.session.add(new_department)
+        db.session.commit()
+    return redirect(url_for("admin_view"))
 
 
 @app.route('/user/<int:pat_id>/<int:dr_id>/<int:dept_id>/book_slot', methods=['POST'])
@@ -253,17 +327,88 @@ def book_appointment(pat_id, dr_id, dept_id):
     selected_slot = request.form.get('selected_slot')
     print(pat_id, doctor.doctor_name, dept.department_name)
     print(selected_slot.split('|')[0], selected_slot.split('|')[1])
-    appointment = Appointment(
+    appointment = Appointments(
         patient_id=pat_id,
         doctor_id=doctor.doctor_id,
         department_id=dept.department_id,
         status="booked",
-        appointment_date=datetime.strptime(selected_slot.split('|')[1], '%d/%m/%Y'),
+        appointment_date=datetime.strptime(selected_slot.split('|')[1], '%d-%m-%Y'),
         appointment_time=selected_slot.split('|')[0],
     )
     db.session.add(appointment)
     db.session.commit()
     return redirect(url_for("patient_view", patient_id=pat_id))
+
+
+@app.route('/diagnose/<int:appointment_id>/<int:dr_id>', methods=['POST'])
+def diagnose(appointment_id, dr_id):
+    m1 = request.form.get('medicines_id1')
+    m2 = request.form.get('medicines_id2')
+    m3 = request.form.get('medicines_id3')
+    d1 = request.form.get('dose_1')
+    d2 = request.form.get('dose_2')
+    d3 = request.form.get('dose_3')
+    if m1 and d1:
+        m1 = m1 + ":" + d1
+    if m2 and d2:
+        m2 = m2 + ":" + d2
+    if m3 and d3:
+        m3 = m3 + ":" + d3
+    treatments = Treatments(
+        appointment_id=appointment_id,
+        visit_type=request.form.get('vist_type'),
+        test_done=request.form.get('test_done'),
+        diagnosis=request.form.get('diagnosis'),
+        prescription=request.form.get('prescription'),
+        medicine_dose=m1 + "," + m2 + "," + m3
+    )
+    db.session.add(treatments)
+    db.session.commit()
+    return redirect(url_for("doctor_view", doctor_id=dr_id))
+
+
+@app.route('/doctor/book_slot/<int:dr_id>', methods=['POST'])
+def save_unavailability(dr_id):
+    selected_slot = request.form.getlist('selected_slot')
+    print(selected_slot)
+    for slot in selected_slot:
+        if slot.split('|')[0] == 'slot1':
+            upsert_doctors_unavailability(slot.split('|')[1], dr_id, slot1=0)
+        if slot.split('|')[0] == 'slot2':
+            upsert_doctors_unavailability(slot.split('|')[1], dr_id, slot2=0)
+    return "😂😘❤️"
+
+
+def upsert_doctors_unavailability(date_input, doctor_id, slot1=None, slot2=None):
+    date = datetime.strptime(date_input, "%d-%m-%Y").date()
+    record = (
+        db.session.query(DoctorsUnavailability)
+        .filter_by(date=date, doctor_id=doctor_id)
+        .one_or_none()
+    )
+    if record:
+        print(slot1, slot2)
+        print(record.slot1, record.slot2)
+        if record.slot1 == 1 and slot1 is not None:
+            record.slot1 = 0
+        elif record.slot1 == 0 and slot1 is not None:
+            record.slot1 = 1
+        if record.slot2 == 1 and slot2 is not None:
+            record.slot2 = 0
+        elif record.slot2 == 0 and slot2 is not None:
+            record.slot2 = 1
+        db.session.add(record)
+        print(record.slot1, record.slot2)
+    else:
+        # Insert new
+        record = DoctorsUnavailability(
+            date=date,
+            doctor_id=doctor_id,
+            slot1=slot1,
+            slot2=slot2,
+        )
+        db.session.add(record)
+    db.session.commit()
 
 
 if __name__ == '__main__':

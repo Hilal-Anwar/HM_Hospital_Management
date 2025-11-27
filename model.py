@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 db = SQLAlchemy()
@@ -38,7 +39,7 @@ class Patient(db.Model):
     status = db.Column(db.String)
 
 
-class Appointment(db.Model):
+class Appointments(db.Model):
     __tablename__ = "appointments"
     appointment_id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.patient_id'))
@@ -49,22 +50,29 @@ class Appointment(db.Model):
     appointment_time = db.Column(db.String)
 
 
-class Treatment(db.Model):
-    __tablename__ = "treatments"
-    id = db.Column(db.Integer, primary_key=True)
-    appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.appointment_id'))
-    diagnosis = db.Column(db.String)
-    prescription = db.Column(db.String)
-    notes = db.Column(db.String)
-
 class DoctorsUnavailability(db.Model):
-    __tablename__ = "doctors _unavailability"
-    id = db.Column(db.Integer, primary_key=True,autoincrement=True)
+    __tablename__ = "doctors_unavailability"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     date = db.Column(db.Date)
-    eight_twelve = db.Column(db.JSON)
-    four_nine = db.Column(db.JSON)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.doctor_id'))
+    slot1 = db.Column(db.Integer,default=1)
+    slot2 = db.Column(db.Integer,default=1)
+    __table_args__ = (UniqueConstraint('date', 'doctor_id',
+                                       name='uq_doctors_unavailability_date_doctor'),)
+
 
 class Medicine(db.Model):
     __tablename__ = "medicines"
     medicine_id = db.Column(db.Integer, primary_key=True)
     medicine_name = db.Column(db.String)
+
+
+class Treatments(db.Model):
+    __tablename__ = "treatments"
+    treatment_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.appointment_id'))
+    visit_type = db.Column(db.String)
+    test_done = db.Column(db.String)
+    diagnosis = db.Column(db.String)
+    medicine_dose = db.Column(db.JSON)
+    prescription = db.Column(db.String)

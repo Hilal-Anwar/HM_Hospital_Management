@@ -9,6 +9,12 @@
             integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
             crossorigin="anonymous"></script>
     <title>Doctor's Dashboard</title>
+    <style>
+        .selectable input:checked + div {
+            background-color: #d1e7dd !important;
+            border: 2px solid black !important;
+        }
+    </style>
 </head>
 <body>
 <header>
@@ -35,7 +41,7 @@
 </header>
 <div class="card mb-3 m-1">
     <div class="card-body">
-        <h5 class="card-title">Upcoming Appointment</h5>
+        <h5 class="card-title">Upcoming Appointments</h5>
         <table class="table table-bordered text-center">
             <tr>
                 <th>Sr No.</th>
@@ -49,7 +55,7 @@
                     <td>{{ pt.patient_name }}</td>
                     <td>
                         <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
-                                data-bs-target="#updatePatient">Update
+                                data-bs-target="#updatePatient{{ loop.index }}">Update
                         </button>
                     </td>
                     <td>
@@ -57,6 +63,90 @@
                         <button type="button" class="btn btn-outline-danger">Cancel</button>
                     </td>
                 </tr>
+                <form action="/diagnose/{{ pt.appointment_id }}/{{ doctor.doctor_id }}" method="POST" id="create-form">
+                    <div class="modal fade" id="updatePatient{{ loop.index }}" tabindex="-1"
+                         aria-labelledby="patientModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="patientModalLabel">Update Patient History</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Patient Name: {{ pt.patient_name }}</p>
+                                    <p>Department: {{ doctor_dept }}</p>
+                                    <div class="col-md-12 d-flex">
+                                        <div class="mb-3 container-fluid">
+                                            <label for="exampleInputUsername" class="form-label">Visit Type</label>
+                                            <input type="text" class="form-control" id="exampleInputUsername"
+                                                   name="vist_type" required>
+                                        </div>
+                                        <div class="mb-3 mx-2 container-fluid">
+                                            <label for="exampleInputEmail1" class="form-label">Test Done</label>
+                                            <input type="text" class="form-control" id="exampleInputUsername"
+                                                   name="test_done" required>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="diagnosis" class="form-label">Diagnosis</label>
+                                            <textarea class="form-control" id="diagnosis" rows="3"
+                                                      name="diagnosis"></textarea>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Medicines</label>
+                                            <div class="medicines-box">
+                                                <div class="d-flex align-items-center">
+                                                    <select class="form-select mx-1 my-1" name="medicines_id1"
+                                                            aria-label="Default select example">
+                                                        <option selected></option>
+                                                        {% for me in medicine_name %}
+                                                            <option value="{{ me.medicine_name }}">{{ me.medicine_name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <input type="text" class="form-control" id="exampleInputUsername"
+                                                           name="dose_1">
+                                                </div>
+                                                <div class="d-flex align-items-center">
+                                                    <select class="form-select mx-1 my-1" name="medicines_id2"
+                                                            aria-label="Default select example">
+                                                        <option selected></option>
+                                                        {% for me in medicine_name %}
+                                                            <option value="{{ me.medicine_name }}">{{ me.medicine_name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <input type="text" class="form-control" id="exampleInputUsername"
+                                                           name="dose_2">
+                                                </div>
+                                                <div class="d-flex align-items-center">
+                                                    <select class="form-select mx-1 my-1" name="medicines_id3"
+                                                            aria-label="Default select example">
+                                                        <option selected></option>
+                                                        {% for me in medicine_name %}
+                                                            <option value="{{ me.medicine_name }}">{{ me.medicine_name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <input type="text" class="form-control" id="exampleInputUsername"
+                                                           name="dose_3">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="exampleInputUsername" class="form-label">Prescription</label>
+                                        <textarea class="form-control" id="exampleInputUsername" rows="3"
+                                                  name="prescription"></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             {% endfor %}
         </table>
     </div>
@@ -72,8 +162,48 @@
                     </div>
                     <div class="d-flex align-items-center justify-content-end container-fluid">
                         <button type="button" class="btn btn-outline-primary m-1" data-bs-toggle="modal"
-                                data-bs-target="#patientHistory">View
+                                data-bs-target="#patientHistory{{ p.appointment_id }}">View
                         </button>
+                    </div>
+                </div>
+                <div class="modal fade modal-xl" id="patientHistory{{ p.appointment_id }}" tabindex="-1"
+                     aria-labelledby="patientHistoryLabel"
+                     aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="exampleModalLabel">Patient History</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Back"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Patient Name: {{ p.patient_name }}</p>
+                                <p>Doctors' Name: {{ doctor.doctor_name }}</p>
+                                <p>Department: {{ doctor_dept }}</p>
+                                <table class="table table-bordered text-center">
+                                    <tr>
+                                        <th>Visit No.</th>
+                                        <th>Visit Type</th>
+                                        <th>Test Done</th>
+                                        <th>Diagnosis</th>
+                                        <th>Prescription</th>
+                                        <th>Medicines</th>
+                                    </tr>
+                                    {% for t in treatment %}
+                                        {% if t.appointment_id==p.appointment_id %}
+                                            <tr>
+                                                <td>{{ loop.index }}</td>
+                                                <td>{{ t.visit_type }}</td>
+                                                <td>{{ t.test_done }}</td>
+                                                <td>{{ t.diagnosis }}</td>
+                                                <td>{{ t.prescription }}</td>
+                                                <td>{{ t.medicine_dose }}</td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             {% endfor %}
@@ -81,138 +211,60 @@
     </div>
 </div>
 <div class="d-flex align-items-center justify-content-end container-fluid">
-    <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#exampleModal">Provide
+    <button type="button" class="btn btn-outline-success m-2" data-bs-toggle="modal"
+            data-bs-target="#checkAvailability">
+        Provide
         Availability
     </button>
 </div>
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Doctor Availability</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="list-group">
-                    <div class="container text-center">
-                        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 gx-2 gy-1">
-                            <!-- horizontal & vertical gaps -->
-                            <div class="col">
-                                <div class="border border-primary  rounded p-2 bg-white">
-                                    21/01/2025
-                                </div>
-                            </div>
-
-                            <div class="col">
-                                <div class="border border-success  rounded p-2 bg-white">
-                                    08:00 - 12:00 am
-                                </div>
-                            </div>
-
-                            <div class="col">
-                                <div class="border border-success rounded p-2 bg-white">
-                                    04:00 - 09:00 pm
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="border border-primary  rounded p-2 bg-white">
-                                    21/01/2025
-                                </div>
-                            </div>
-
-                            <div class="col">
-                                <div class="border border-success  rounded p-2 bg-white">
-                                    08:00 - 12:00 am
-                                </div>
-                            </div>
-
-                            <div class="col">
-                                <div class="border border-success rounded p-2 bg-white">
-                                    04:00 - 09:00 pm
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">Save</button>
-            </div>
-        </div>
-    </div>
-</div>
-<form action="/user/update_patient" method="POST" id="create-form">
-    <div class="modal fade" id="updatePatient" tabindex="-1" aria-labelledby="patientModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+<form method="POST"
+      action="/doctor/book_slot/{{ doctor.doctor_id }}">
+    <div class="modal fade" id="checkAvailability" tabindex="-1"
+         aria-labelledby="checkAvailabilityLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="patientModalLabel">Update Patient History</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h1 class="modal-title fs-5" id="checkAvailabilityLabel">Doctor
+                        Availability</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Patient Name: Mr. Black</p>
-                    <p>Department: Cardiology</p>
-                    <div class="col-md-12 d-flex">
-                        <div class="mb-3 container-fluid">
-                            <label for="exampleInputUsername" class="form-label">Visit Type</label>
-                            <input type="text" class="form-control" id="exampleInputUsername" name="username">
-                        </div>
-                        <div class="mb-3 mx-2 container-fluid">
-                            <label for="exampleInputEmail1" class="form-label">Test Done</label>
-                            <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"
-                                   name="specialization" required>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="diagnosis" class="form-label">Diagnosis</label>
-                            <textarea class="form-control" id="diagnosis" rows="3"></textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Medicines</label>
-                            <div class="medicines-box">
-                                <div class="d-flex align-items-center">
-                                    <select class="form-select mx-1 my-1" name="department_id"
-                                            aria-label="Default select example">
-                                        <option selected>Select Department</option>
-                                        {% for me in medicine_name %}
-                                            <option value="{{ loop.index }}">{{ me.medicine_name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <input type="text" class="form-control" id="exampleInputEmail1"
-                                           aria-describedby="emailHelp"
-                                           name="experience">
-                                </div>
-                                <div class="d-flex align-items-center">
-                                    <select class="form-select mx-1 my-1" name="department_id"
-                                            aria-label="Default select example">
-                                        <option selected>Select Department</option>
-                                        {% for me in medicine_name %}
-                                            <option value="{{ loop.index }}">{{ me.medicine_name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <input type="text" class="form-control" id="exampleInputEmail1"
-                                           aria-describedby="emailHelp"
-                                           name="experience">
-                                </div>
-                                <div class="d-flex align-items-center">
-                                    <select class="form-select mx-1 my-1" name="department_id"
-                                            aria-label="Default select example">
-                                        <option selected>Select Department</option>
-                                        {% for me in medicine_name %}
-                                            <option value="{{ loop.index }}">{{ me.medicine_name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <input type="text" class="form-control" id="exampleInputEmail1"
-                                           aria-describedby="emailHelp"
-                                           name="experience">
-                                </div>
+                    <div class="list-group">
+                        <div class="container text-center">
+                            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 gx-2 gy-1">
+                                {% for date, slots in doctors_availability.items() %}
+                                    <div class="col">
+                                        <label class="selectable">
+                                            <div class="border border-primary rounded p-2 bg-white">
+                                                {{ date }}
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="col">
+                                        <label class="selectable">
+                                            <input type="checkbox" name="selected_slot"
+                                                   value="slot1|{{ date }}"
+                                                   hidden>
+                                            <div class="border {% if  slots.slot1 %} border-success {% else %} border-danger {% endif %} rounded p-2 bg-white">
+                                                08:00 - 12:00 am
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="col">
+                                        <label class="selectable">
+                                            <input type="checkbox" name="selected_slot"
+                                                   value="slot2|{{ date }}"
+                                                   hidden>
+                                            <div class="border {% if  slots.slot2 %} border-success {% else %} border-danger {% endif %} rounded p-2 bg-white">
+                                                04:00 - 09:00 pm
+                                            </div>
+                                        </label>
+                                    </div>
+                                {% endfor %}
                             </div>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="exampleInputEmail1" class="form-label">Prescription</label>
-                        <textarea class="form-control" id="exampleInputEmail1" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -222,55 +274,5 @@
         </div>
     </div>
 </form>
-<div class="modal fade" id="patientHistory" tabindex="-1" aria-labelledby="patientHistoryLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Patient History</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Back"></button>
-            </div>
-            <div class="modal-body">
-                <p>Patient Name: Mr Black</p>
-                <p>Doctors' Name: Dr Aisha</p>
-                <p>Department: Cardiology</p>
-                <table class="table table-bordered text-center">
-                    <tr>
-                        <th>Visit No.</th>
-                        <th>Visit Type</th>
-                        <th>Test Done</th>
-                        <th>Diagnosis</th>
-                        <th>Prescription</th>
-                        <th>Medicines</th>
-                    </tr>
-                    <tr>
-                        <td>1.</td>
-                        <td>In-person</td>
-                        <td>ECG</td>
-                        <td>Abnormal Heartbeats</td>
-                        <td>Exercise Daily</td>
-                        <td>Medicine 1</td>
-                    </tr>
-                    <tr>
-                        <td>2.</td>
-                        <td>In-person</td>
-                        <td>ECG</td>
-                        <td>Abnormal Heartbeats</td>
-                        <td>Exercise Daily</td>
-                        <td>Medicine 1</td>
-                    </tr>
-                    <tr>
-                        <td>3.</td>
-                        <td>In-person</td>
-                        <td>ECG</td>
-                        <td>Abnormal Heartbeats</td>
-                        <td>Exercise Daily</td>
-                        <td>Medicine 1</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
 </body>
 </html>

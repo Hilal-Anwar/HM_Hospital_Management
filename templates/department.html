@@ -10,13 +10,10 @@
             crossorigin="anonymous"></script>
     <title>Department</title>
     <style>
-
         .selectable input:checked + div {
             background-color: #d1e7dd !important;
             border: 2px solid black !important;
         }
-
-
     </style>
 </head>
 <body>
@@ -72,9 +69,58 @@
                             <button type="button" class="btn btn-outline-primary m-1" data-bs-toggle="modal"
                                     data-bs-target="#checkAvailabilitydr{{ dr['doctor_id'] }}">Check Availability
                             </button>
-                            <button type="button" class="btn btn-outline-primary m-1">View Details</button>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#doctorModal{{ dr['doctor_id'] }}">View Details
+                            </button>
                         </div>
                     </div>
+                    <div class="modal fade" id="doctorModal{{ dr['doctor_id'] }}" tabindex="-1" aria-labelledby="doctorModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="doctorModalLabel">Doctor Details</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <div class="doctor-card">
+                                        <div class="row g-3 align-items-start">
+                                            <!-- Left: text -->
+                                            <div class="col-12 col-md-8">
+                                                <div class="doctor-title">{{ dr['doctor_name'] }}</div>
+                                                <div class="doctor-subtitle">MBBS, DM – Medical Oncology</div>
+                                                <div class="doctor-subtitle">Medical Oncologist</div>
+                                                <div class="doctor-subtitle mt-2">
+                                                    <strong>{{ dr['experience'] }} Years Experience Overall</strong> <span
+                                                        class="text-muted"></span>
+                                                </div>
+
+                                                <p class="doctor-desc mb-0">
+                                                    Dr. mnop is a Medical Oncologist in India and has an experience of
+                                                    20 years in this field.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 d-flex gap-2">
+                                            <button type="button" class="btn btn-outline-secondary"
+                                                    data-bs-dismiss="modal">
+                                                Go Back
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
                     <form method="POST"
                           action="/user/{{ patient }}/{{ dr['doctor_id'] }}/{{ department['department_id'] }}/book_slot">
                         <div class="modal fade" id="checkAvailabilitydr{{ dr['doctor_id'] }}" tabindex="-1"
@@ -91,107 +137,41 @@
                                     <div class="modal-body">
                                         <div class="list-group">
                                             <div class="container text-center">
+
                                                 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 gx-2 gy-1">
-                                                    <div class="col">
-                                                        <label class="selectable">
-                                                            <div class="border border-primary rounded p-2 bg-white">
-                                                                16/01/2025
-                                                            </div>
-                                                        </label>
-                                                    </div>
-                                                    <div class="col">
-                                                        <label class="selectable">
-                                                            <input type="radio" name="selected_slot"
-                                                                   value="08:00-12:00|16/01/2025" hidden>
-                                                            <div class="border border-success rounded p-2 bg-white">
-                                                                08:00 - 12:00 am
-                                                            </div>
-                                                        </label>
-                                                    </div>
-                                                    <div class="col">
-                                                        <label class="selectable">
-                                                            <input type="radio" name="selected_slot" value="16:00-21:00"
-                                                                   hidden>
-                                                            <div class="border border-success rounded p-2 bg-white">
-                                                                04:00 - 09:00 pm
-                                                            </div>
-                                                        </label>
-                                                    </div>
-                                                    <div class="col">
-                                                        <label class="selectable">
-                                                            <div class="border border-primary rounded p-2 bg-white">
-                                                                17/01/2025
-                                                            </div>
-                                                        </label>
-                                                    </div>
-                                                    <div class="col">
-                                                        <label class="selectable">
-                                                            <input type="radio" name="selected_slot"
-                                                                   value="08:00-12:00|17/01/2025" hidden>
-                                                            <div class="border border-success rounded p-2 bg-white">
-                                                                08:00 - 12:00 am
-                                                            </div>
-                                                        </label>
-                                                    </div>
-                                                    <div class="col">
-                                                        <label class="selectable">
-                                                            <input type="radio" name="selected_slot" value="16:00-21:00"
-                                                                   hidden>
-                                                            <div class="border border-success rounded p-2 bg-white">
-                                                                04:00 - 09:00 pm
-                                                            </div>
-                                                        </label>
-                                                    </div>
-                                                    <div class="col">
-                                                        <label class="selectable">
-                                                            <div class="border border-primary rounded p-2 bg-white">
-                                                                18/01/2025
-                                                            </div>
-                                                        </label>
-                                                    </div>
-                                                    <div class="col">
-                                                        <label class="selectable">
-                                                            <input type="radio" name="selected_slot"
-                                                                   value="08:00-12:00|16/01/2025" hidden>
-                                                            <div class="border border-success rounded p-2 bg-white">
-                                                                08:00 - 12:00 am
-                                                            </div>
-                                                        </label>
-                                                    </div>
-                                                    <div class="col">
-                                                        <label class="selectable">
-                                                            <input type="radio" name="selected_slot"
-                                                                   value="16:00-21:00|18/01/2025" hidden>
-                                                            <div class="border border-success rounded p-2 bg-white">
-                                                                04:00 - 09:00 pm
-                                                            </div>
-                                                        </label>
-                                                    </div>
-                                                    <div class="col">
-                                                        <label class="selectable">
-                                                            <div class="border border-primary rounded p-2 bg-white">
-                                                                19/01/2025
-                                                            </div>
-                                                        </label>
-                                                    </div>
-                                                    <div class="col">
-                                                        <label class="selectable">
-                                                            <input type="radio" name="selected_slot"
-                                                                   value="08:00-12:00|19/01/2025" hidden>
-                                                            <div class="border border-success rounded p-2 bg-white">
-                                                                08:00 - 12:00 am
-                                                            </div>
-                                                        </label>
-                                                    </div>
-                                                    <div class="col">
-                                                        <label class="selectable">
-                                                            <input type="radio" name="selected_slot"
-                                                                   value="16:00-21:00|19/01/2025" hidden>
-                                                            <div class="border border-success rounded p-2 bg-white">
-                                                                04:00 - 09:00 pm
-                                                            </div>
-                                                        </label>
-                                                    </div>
+                                                    {% for date, slots in doctors_availability[dr['doctor_id']].items() %}
+                                                        <div class="col">
+                                                            <label class="selectable">
+                                                                <div class="border border-primary rounded p-2 bg-white">
+                                                                    {{ date }}
+                                                                </div>
+                                                            </label>
+                                                        </div>
+                                                        <div class="col">
+                                                            <label class="selectable">
+                                                                <input type="radio" name="selected_slot"
+                                                                       value="08:00-12:00 am|{{ date }}"
+                                                                       hidden {% if not slots.slot1 %}
+                                                                       disabled {% endif %}>
+                                                                <div class="border {% if  slots.slot1 %} border-success {% else %} border-danger {% endif %} rounded p-2 bg-white">
+                                                                    08:00 - 12:00 am
+                                                                </div>
+                                                            </label>
+                                                        </div>
+                                                        <div class="col">
+                                                            <label class="selectable">
+                                                                <input type="radio" name="selected_slot"
+                                                                       value="04:00-09:00 pm|{{ date }}"
+                                                                       hidden {% if not slots.slot2 %}
+                                                                       disabled {% endif %}>
+
+                                                                <div class="border {% if  slots.slot2 %} border-success {% else %} border-danger {% endif %} rounded p-2 bg-white">
+                                                                    04:00 - 09:00 pm
+                                                                </div>
+
+                                                            </label>
+                                                        </div>
+                                                    {% endfor %}
                                                 </div>
                                             </div>
                                         </div>
@@ -203,6 +183,7 @@
                             </div>
                         </div>
                     </form>
+
                 {% endfor %}
             </div>
         {% endif %}

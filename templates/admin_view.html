@@ -31,6 +31,11 @@
                            aria-label="Search"/>
                     <button class="btn btn-outline-success" type="submit">Search</button>
                 </form>
+                <form role="search">
+                    <button class="btn btn-outline-success mx-1" type="button" data-bs-toggle="modal"
+                            data-bs-target="#addNewDepartment">Add Department
+                    </button>
+                </form>
             </div>
         </div>
     </nav>
@@ -84,7 +89,7 @@
 </div>
 <div class="card mb-3 m-1">
     <div class="card-body">
-        <h5 class="card-title">Upcoming Appointment</h5>
+        <h5 class="card-title">Upcoming Appointments</h5>
         <table class="table table-bordered text-center">
             <tr>
                 <th>Sr No.</th>
@@ -93,16 +98,60 @@
                 <th>Department</th>
                 <th>Patient History</th>
             </tr>
-            <tr>
-                <td>1001.</td>
-                <td>Mr. Black</td>
-                <td>Dr Aisha</td>
-                <td>Cardiology</td>
-                <td>
-                    <button type="button" class="btn btn-outline-primary">View</button>
-                </td>
-            </tr>
+            {% for apt in appointments %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ apt.patient_name }}</td>
+                    <td>{{ apt.doctor_name }}</td>
+                    <td>{{ apt.department_name }}</td>
+                    <td>
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#patientHistory{{ apt.appointment_id }}">View</button>
+                    </td>
+                </tr>
+            {% endfor %}
         </table>
+        {% for apt in appointments %}
+            <div class="modal fade modal-xl" id="patientHistory{{ apt.appointment_id }}" tabindex="-1"
+                 aria-labelledby="patientHistoryLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="exampleModalLabel">Patient History</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Back"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Patient Name: {{ apt.patient_name }}</p>
+                            <p>Doctors' Name: {{ apt.doctor_name }}</p>
+                            <p>Department: {{ apt.department_name }}</p>
+                            <table class="table table-bordered text-center">
+                                <tr>
+                                    <th>Visit No.</th>
+                                    <th>Visit Type</th>
+                                    <th>Test Done</th>
+                                    <th>Diagnosis</th>
+                                    <th>Prescription</th>
+                                    <th>Medicines</th>
+                                </tr>
+                                {% for t in treatment %}
+                                    {% if t.appointment_id==apt.appointment_id %}
+                                        <tr>
+                                            <td>{{ loop.index }}</td>
+                                            <td>{{ t.visit_type }}</td>
+                                            <td>{{ t.test_done }}</td>
+                                            <td>{{ t.diagnosis }}</td>
+                                            <td>{{ t.prescription }}</td>
+                                            <td>{{ t.medicine_dose }}</td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
     </div>
 </div>
 <form action="/user/add_doctor" method="POST" id="create-form">
@@ -137,6 +186,33 @@
                         <input type="password" class="form-control" id="exampleInputPassword"
                                aria-describedby="passwordHelp"
                                name="password" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<form action="/user/dept" method="POST" id="create-form">
+    <div class="modal fade" id="addNewDepartment" tabindex="-1" aria-labelledby="addNewDepartmentLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Add Department</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="exampleInputUsername" class="form-label">Department Name</label>
+                        <input type="text" class="form-control" id="exampleInputUsername" name="dept_name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">Department Description</label>
+                        <textarea class="form-control" id="exampleInputUsername" rows="3"
+                                  name="dept_description"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
