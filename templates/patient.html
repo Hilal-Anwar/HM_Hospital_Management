@@ -31,15 +31,17 @@
                     <ul class="navbar-nav mb-2 mb-lg-0">
                         <li class="nav-item">
                             <a class="nav-link active link-warning link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
-                               aria-current="page" href="#">Edit Profile</a>
+                               aria-current="page" type="button" data-bs-toggle="modal"
+                               data-bs-target="#editPatient">Edit Profile</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link active link-primary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
-                               aria-current="page" href="#">History</a>
+                               aria-current="page" type="button" data-bs-toggle="modal"
+                               data-bs-target="#patientHistory">History</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link active link-danger link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
-                               aria-current="page" href="#">Logout</a>
+                               aria-current="page" href="/">Logout</a>
                         </li>
                     </ul>
                 </div>
@@ -91,13 +93,97 @@
                         {{ appointment.appointment_time }}
                     </td>
                     <td>
-                        <button type="button" class="btn btn-outline-danger m-1">Cancel</button>
+                        {% if appointment.status=='booked' %}
+                            <form method="POST"
+                                  action="/patient/{{ appointment.appointment_id }}/{{ patient.patient_id }}">
+                                <button type="submit" class="btn btn-outline-danger m-1">Cancel</button>
+                            </form>
+                        {% elif appointment.status=='completed' %}
+                            <p>Completed</p>
+                        {% elif appointment.status=='canceled' %}
+                            <p>Canceled</p>
+                        {% endif %}
                     </td>
                 </tr>
             {% endfor %}
         </table>
     </div>
 </div>
-
+<div class="modal fade modal-dialog-scrollable modal-xl" id="patientHistory" tabindex="-1"
+     aria-labelledby="patientHistoryLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Patient History</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Back"></button>
+            </div>
+            <div class="modal-body">
+                {% for apt in appointments %}
+                    {% if apt.status!='canceled' %}
+                        <h3>Treatment {{ loop.index }}({{ apt.appointment_date }})</h3>
+                        <p class="text-start">Patient Name: {{ apt.patient_name }}</p>
+                        <p class="text-start">Doctors' Name: {{ apt.doctor_name }}</p>
+                        <p class="text-start">Department: {{ apt.department_name }}</p>
+                        <table class="table table-bordered text-center">
+                            <tr>
+                                <th>Visit No.</th>
+                                <th>Visit Type</th>
+                                <th>Test Done</th>
+                                <th>Diagnosis</th>
+                                <th>Prescription</th>
+                                <th>Medicines</th>
+                            </tr>
+                            {% for t in treatment %}
+                                {% if t.patient_id==apt.patient_id and t.doctor_id==apt.doctor_id %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ t.visit_type }}</td>
+                                        <td>{{ t.test_done }}</td>
+                                        <td>{{ t.diagnosis }}</td>
+                                        <td>{{ t.prescription }}</td>
+                                        <td>{{ t.medicine_dose }}</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </table>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<form action="/patient/{{ patient.patient_id }}/edit/{{ patient.patient_name }}" method="POST">
+    <div class="modal fade" id="editPatient" tabindex="-1"
+         aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Patient</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="exampleInputUsername" class="form-label">Fullname</label>
+                        <input type="text" class="form-control" id="exampleInputUsername"
+                               name="doctor_name" value="{{ patient.patient_name }}" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="exampleInputPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="exampleInputPassword"
+                               aria-describedby="passwordHelp"
+                               name="password" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Edit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
 </body>
 </html>

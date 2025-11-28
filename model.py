@@ -18,7 +18,6 @@ class Department(db.Model):
     department_id = db.Column(db.Integer, primary_key=True)
     department_name = db.Column(db.String)
     department_description = db.Column(db.String)
-    doctor_list = db.Column(db.JSON)
 
 
 class Doctor(db.Model):
@@ -55,8 +54,8 @@ class DoctorsUnavailability(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     date = db.Column(db.Date)
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.doctor_id'))
-    slot1 = db.Column(db.Integer,default=1)
-    slot2 = db.Column(db.Integer,default=1)
+    slot1 = db.Column(db.Integer, default=1)
+    slot2 = db.Column(db.Integer, default=1)
     __table_args__ = (UniqueConstraint('date', 'doctor_id',
                                        name='uq_doctors_unavailability_date_doctor'),)
 
@@ -70,7 +69,8 @@ class Medicine(db.Model):
 class Treatments(db.Model):
     __tablename__ = "treatments"
     treatment_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    appointment_id = db.Column(db.Integer, db.ForeignKey('appointments.appointment_id'))
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.doctor_id'))
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.patient_id'))
     visit_type = db.Column(db.String)
     test_done = db.Column(db.String)
     diagnosis = db.Column(db.String)

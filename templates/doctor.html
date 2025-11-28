@@ -32,8 +32,8 @@
                         <a class="nav-link active" aria-current="page" href="#">Welcome, {{ doctor['doctor_name'] }}</a>
                     </li>
                 </ul>
-                <form class="d-flex" role="search">
-                    <button class="btn btn-outline-danger" type="submit">Logout</button>
+                <form class="d-flex">
+                    <a class="btn btn-outline-danger" href="/">Logout</a>
                 </form>
             </div>
         </div>
@@ -47,9 +47,11 @@
                 <th>Sr No.</th>
                 <th>Patient Name</th>
                 <th>Patient History</th>
+                <th>Appointment Date</th>
+                <th>Appointment Time</th>
                 <th>Action</th>
             </tr>
-            {% for pt in patients %}
+            {% for pt in booked_appointment %}
                 <tr>
                     <td>{{ loop.index }}</td>
                     <td>{{ pt.patient_name }}</td>
@@ -59,11 +61,21 @@
                         </button>
                     </td>
                     <td>
-                        <button type="button" class="btn btn-outline-success">Mark a complete</button>
-                        <button type="button" class="btn btn-outline-danger">Cancel</button>
+                        {{ pt.appointment_date }}
+                    </td>
+                    <td>
+                        {{ pt.appointment_time }}
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center justify-content-center">
+                            <form action="/doctor/{{ pt.appointment_id }}/{{ doctor.doctor_id }}" method="POST">
+                                <button type="submit" class="btn btn-outline-danger">Cancel</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
-                <form action="/diagnose/{{ pt.appointment_id }}/{{ doctor.doctor_id }}" method="POST" id="create-form">
+                <form action="/diagnose/{{ doctor.doctor_id }}/{{ pt.appointment_id }}/{{ pt.patient_id }}"
+                      method="POST" id="create-form">
                     <div class="modal fade" id="updatePatient{{ loop.index }}" tabindex="-1"
                          aria-labelledby="patientModalLabel"
                          aria-hidden="true">
@@ -156,56 +168,58 @@
         <h5 class="card-title">Assigned Patients</h5>
         <div class="list-group" style="max-height: 400px;overflow-y: auto;">
             {% for p in patients %}
-                <div class="list-group-item" style="display: flex">
-                    <div class="d-flex align-items-center container-fluid">
-                        <p class="mb-0">{{ p.patient_name }}</p>
+                {% if p.status!='canceled' %}
+                    <div class="list-group-item" style="display: flex">
+                        <div class="d-flex align-items-center container-fluid">
+                            <p class="mb-0">{{ p.patient_name }}</p>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-end container-fluid">
+                            <button type="button" class="btn btn-outline-primary m-1" data-bs-toggle="modal"
+                                    data-bs-target="#patientHistory{{ p.patient_id }}">View
+                            </button>
+                        </div>
                     </div>
-                    <div class="d-flex align-items-center justify-content-end container-fluid">
-                        <button type="button" class="btn btn-outline-primary m-1" data-bs-toggle="modal"
-                                data-bs-target="#patientHistory{{ p.appointment_id }}">View
-                        </button>
-                    </div>
-                </div>
-                <div class="modal fade modal-xl" id="patientHistory{{ p.appointment_id }}" tabindex="-1"
-                     aria-labelledby="patientHistoryLabel"
-                     aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h1 class="modal-title fs-5" id="exampleModalLabel">Patient History</h1>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                        aria-label="Back"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p>Patient Name: {{ p.patient_name }}</p>
-                                <p>Doctors' Name: {{ doctor.doctor_name }}</p>
-                                <p>Department: {{ doctor_dept }}</p>
-                                <table class="table table-bordered text-center">
-                                    <tr>
-                                        <th>Visit No.</th>
-                                        <th>Visit Type</th>
-                                        <th>Test Done</th>
-                                        <th>Diagnosis</th>
-                                        <th>Prescription</th>
-                                        <th>Medicines</th>
-                                    </tr>
-                                    {% for t in treatment %}
-                                        {% if t.appointment_id==p.appointment_id %}
-                                            <tr>
-                                                <td>{{ loop.index }}</td>
-                                                <td>{{ t.visit_type }}</td>
-                                                <td>{{ t.test_done }}</td>
-                                                <td>{{ t.diagnosis }}</td>
-                                                <td>{{ t.prescription }}</td>
-                                                <td>{{ t.medicine_dose }}</td>
-                                            </tr>
-                                        {% endif %}
-                                    {% endfor %}
-                                </table>
+                    <div class="modal fade modal-xl" id="patientHistory{{ p.patient_id }}" tabindex="-1"
+                         aria-labelledby="patientHistoryLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Patient History</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Back"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Patient Name: {{ p.patient_name }}</p>
+                                    <p>Doctors' Name: {{ doctor.doctor_name }}</p>
+                                    <p>Department: {{ doctor_dept }}</p>
+                                    <table class="table table-bordered text-center">
+                                        <tr>
+                                            <th>Visit No.</th>
+                                            <th>Visit Type</th>
+                                            <th>Test Done</th>
+                                            <th>Diagnosis</th>
+                                            <th>Prescription</th>
+                                            <th>Medicines</th>
+                                        </tr>
+                                        {% for t in treatment %}
+                                            {% if t.patient_id==p.patient_id %}
+                                                <tr>
+                                                    <td>{{ loop.index }}</td>
+                                                    <td>{{ t.visit_type }}</td>
+                                                    <td>{{ t.test_done }}</td>
+                                                    <td>{{ t.diagnosis }}</td>
+                                                    <td>{{ t.prescription }}</td>
+                                                    <td>{{ t.medicine_dose }}</td>
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                {% endif %}
             {% endfor %}
         </div>
     </div>

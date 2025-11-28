@@ -26,9 +26,9 @@
                         <a class="nav-link active" aria-current="page" href="#">Welcome, Admin</a>
                     </li>
                 </ul>
-                <form class="d-flex" role="search">
+                <form class="d-flex" role="search" action="/user/admin" method="POST">
                     <input class="form-control me-3" type="search" placeholder="Doctor,Patient,Department"
-                           aria-label="Search"/>
+                           aria-label="Search" name="valueSearch"/>
                     <button class="btn btn-outline-success" type="submit">Search</button>
                 </form>
                 <form role="search">
@@ -56,11 +56,70 @@
                             <p class="mb-0">{{ doctor.doctor_name }}</p>
                         </div>
                         <div class="d-flex align-items-center justify-content-end container-fluid">
-                            <button type="button" class="btn btn-outline-warning m-1">Edit</button>
-                            <button type="button" class="btn btn-outline-danger m-1">Delete</button>
-                            <button type="button" class="btn btn-outline-secondary m-1">Blacklist</button>
+                            <button type="button" class="btn btn-outline-warning m-1" data-bs-toggle="modal"
+                                    data-bs-target="#exampleModal{{ doctor.doctor_id }}">Edit
+                            </button>
+                            <form action="/patient/{{ doctor.user_id }}/{{ doctor.doctor_id }}/delete">
+                                <button type="submit" class="btn btn-outline-danger m-1">Delete</button>
+                            </form>
                         </div>
                     </div>
+                    <form action="/doctor/{{ doctor.doctor_id }}/edit" method="POST">
+                        <div class="modal fade" id="exampleModal{{ doctor.doctor_id }}" tabindex="-1"
+                             aria-labelledby="exampleModalLabel"
+                             aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Doctor</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="exampleInputUsername" class="form-label">Fullname</label>
+                                            <input type="text" class="form-control" id="exampleInputUsername"
+                                                   name="doctor_name" value="{{ doctor.doctor_name }}" disabled>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="exampleInputEmail1"
+                                                   class="form-label">Specialization/Department</label>
+                                            <select class="form-select" name="department_id"
+                                                    aria-label="Default select example" disabled>
+                                                <option selected>Select Department</option>
+                                                {% for dept in departments %}
+                                                    {% if dept.department_id==doctor.department_id %}
+                                                        <option value="{{ loop.index }}"
+                                                                selected>{{ dept.department_name }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="exampleInputEmail1" class="form-label">Experience in
+                                                years</label>
+                                            <input type="text" class="form-control" id="exampleInputEmail1"
+                                                   aria-describedby="emailHelp"
+                                                   name="experience" value="{{ doctor.experience }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="exampleInputPassword" class="form-label">Password</label>
+                                            {% for u in users %}
+                                                {% if u.id==doctor.user_id %}
+                                                <input type="text" class="form-control" id="exampleInputPassword"
+                                                       aria-describedby="passwordHelp"
+                                                       name="password" required value="{{ u.password }}">
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-primary">Edit</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 {% endfor %}
             </div>
         {% endif %}
@@ -77,11 +136,47 @@
                             <p class="mb-0">{{ patient.patient_name }}</p>
                         </div>
                         <div class="d-flex align-items-center justify-content-end container-fluid">
-                            <button type="button" class="btn btn-outline-warning m-1">Edit</button>
-                            <button type="button" class="btn btn-outline-danger m-1">Delete</button>
-                            <button type="button" class="btn btn-outline-secondary m-1">Blacklist</button>
+
+                            <button type="button" class="btn btn-outline-warning m-1"
+                                    data-bs-target="#patientExampleModal{{ patient.user_id }}" data-bs-toggle="modal">
+                                Edit
+                            </button>
+                            <form action="/patient/{{ patient.user_id }}/{{ patient.patient_id }}/delete">
+                                <button type="submit" class="btn btn-outline-danger m-1">Delete</button>
+                            </form>
                         </div>
                     </div>
+                    <form action="/patient/{{ patient.patient_id }}/edit/admin" method="POST">
+                        <div class="modal fade" id="patientExampleModal{{ patient.user_id }}" tabindex="-1"
+                             aria-labelledby="exampleModalLabel"
+                             aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Patient</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="exampleInputUsername" class="form-label">Fullname</label>
+                                            <input type="text" class="form-control" id="exampleInputUsername"
+                                                   name="doctor_name" value="{{ patient.patient_name }}" disabled>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="exampleInputPassword" class="form-label">Password</label>
+                                            <input type="password" class="form-control" id="exampleInputPassword"
+                                                   aria-describedby="passwordHelp"
+                                                   name="password" required>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-primary">Edit</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 {% endfor %}
             </div>
         {% endif %}
@@ -105,53 +200,55 @@
                     <td>{{ apt.doctor_name }}</td>
                     <td>{{ apt.department_name }}</td>
                     <td>
-                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#patientHistory{{ apt.appointment_id }}">View</button>
+                        <div>
+                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                                    data-bs-target="#patientHistory{{ apt.appointment_id }}">View
+                            </button>
+                            <div class="modal fade modal-xl" id="patientHistory{{ apt.appointment_id }}" tabindex="-1"
+                                 aria-labelledby="patientHistoryLabel"
+                                 aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="exampleModalLabel">Patient History</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Back"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p class="text-start">Patient Name: {{ apt.patient_name }}</p>
+                                            <p class="text-start">Doctors' Name: {{ apt.doctor_name }}</p>
+                                            <p class="text-start">Department: {{ apt.department_name }}</p>
+                                            <table class="table table-bordered text-center">
+                                                <tr>
+                                                    <th>Visit No.</th>
+                                                    <th>Visit Type</th>
+                                                    <th>Test Done</th>
+                                                    <th>Diagnosis</th>
+                                                    <th>Prescription</th>
+                                                    <th>Medicines</th>
+                                                </tr>
+                                                {% for t in treatment %}
+                                                    {% if t.patient_id==apt.patient_id %}
+                                                        <tr>
+                                                            <td>{{ loop.index }}</td>
+                                                            <td>{{ t.visit_type }}</td>
+                                                            <td>{{ t.test_done }}</td>
+                                                            <td>{{ t.diagnosis }}</td>
+                                                            <td>{{ t.prescription }}</td>
+                                                            <td>{{ t.medicine_dose }}</td>
+                                                        </tr>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </td>
                 </tr>
             {% endfor %}
         </table>
-        {% for apt in appointments %}
-            <div class="modal fade modal-xl" id="patientHistory{{ apt.appointment_id }}" tabindex="-1"
-                 aria-labelledby="patientHistoryLabel"
-                 aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="exampleModalLabel">Patient History</h1>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Back"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Patient Name: {{ apt.patient_name }}</p>
-                            <p>Doctors' Name: {{ apt.doctor_name }}</p>
-                            <p>Department: {{ apt.department_name }}</p>
-                            <table class="table table-bordered text-center">
-                                <tr>
-                                    <th>Visit No.</th>
-                                    <th>Visit Type</th>
-                                    <th>Test Done</th>
-                                    <th>Diagnosis</th>
-                                    <th>Prescription</th>
-                                    <th>Medicines</th>
-                                </tr>
-                                {% for t in treatment %}
-                                    {% if t.appointment_id==apt.appointment_id %}
-                                        <tr>
-                                            <td>{{ loop.index }}</td>
-                                            <td>{{ t.visit_type }}</td>
-                                            <td>{{ t.test_done }}</td>
-                                            <td>{{ t.diagnosis }}</td>
-                                            <td>{{ t.prescription }}</td>
-                                            <td>{{ t.medicine_dose }}</td>
-                                        </tr>
-                                    {% endif %}
-                                {% endfor %}
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
     </div>
 </div>
 <form action="/user/add_doctor" method="POST" id="create-form">

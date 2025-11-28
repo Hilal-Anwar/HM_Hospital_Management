@@ -1,7 +1,7 @@
 import random
 from datetime import datetime, timedelta
 
-from flask import Flask, render_template, redirect, url_for, request, json
+from flask import Flask, render_template, redirect, url_for, request
 from model import db, User, Department, Doctor, Patient, Appointments, Medicine, Treatments, DoctorsUnavailability
 from sqlalchemy.orm import aliased
 
@@ -105,19 +105,45 @@ def login():
         return render_template("error.html")
 
 
-@app.route("/user/admin")
+@app.route("/doctor/<int:user_id>/<int:dr_id>/delete")
+def doctor_delete(user_id, dr_id):
+    user = db.get_or_404(User, user_id)
+    doctor = db.session.query(Doctor).get(dr_id)
+    appointments = Appointments.query.filter_by(doctor_id=dr_id).all()
+    Treatments.query.filter_by(doctor_id=dr_id).delete()
+    for apt in appointments:
+        treatments = Treatments.query.filter_by(doctor_id=apt.doctor_id).all()
+        for treatment in treatments:
+            db.session.delete(treatment)
+        db.session.delete(apt)
+        db.session.commit()
+    print(user, doctor, appointments)
+    db.session.delete(doctor)
+    db.session.delete(user)
+    db.session.commit()
+    return redirect(url_for("admin_view"))
+
+
+@app.route("/user/admin", methods=["GET", "POST"])
 def admin_view():
     a = aliased(Appointments)
     p = aliased(Patient)
     d = aliased(Doctor)
     dept = aliased(Department)
-
+    token = ''
+    search_dep = None
+    if request.method == "POST":
+        token = request.form['valueSearch']
+        if len(token) > 0:
+            search_dep = Department.query.filter_by(department_name=token).first()
     query = (
         db.session.query(
             a.appointment_id,
             a.appointment_date,
             a.appointment_time,
+            a.patient_id,
             p.patient_name,
+            d.user_id,
             d.doctor_name,
             d.experience,
             dept.department_name,
@@ -129,14 +155,28 @@ def admin_view():
     )
 
     results = query.all()
-    treatment = (
-        db.session.query(Treatments.appointment_id, Treatments.prescription, Treatments.medicine_dose,
-                         Treatments.diagnosis, Treatments.test_done,
-                         Treatments.visit_type).join(Appointments,
-                                                     Treatments.appointment_id == Appointments.appointment_id).all())
+    treatment = db.session.query(Treatments.doctor_id, Treatments.patient_id, Treatments.test_done,
+                                 Treatments.diagnosis, Treatments.medicine_dose, Treatments.prescription,
+                                 Treatments.visit_type).all()
+
+    if not token.strip():
+        patients = Patient.query.all()
+        doctors = Doctor.query.all()
+    else:
+        patients = Patient.query.filter(Patient.patient_name.ilike(f"{token}%")).all()
+        doctors = Doctor.query.filter(Doctor.doctor_name.ilike(f"{token}%")).all()
+        if not patients:
+            patients = Patient.query.all()
+        if not doctors:
+            if search_dep and search_dep.department_id:
+                doctors = Doctor.query.filter_by(department_id=search_dep.department_id).all()
+            else:
+                doctors = Doctor.query.all()
+
     return render_template("admin_view.html", departments=Department.query.all(),
-                           doctors=Doctor.query.all(), patients=Patient.query.all(),
-                           appointments=results,treatment=treatment)
+                           doctors=doctors,
+                           patients=patients,
+                           appointments=results, treatment=treatment, users=User.query.all())
 
 
 @app.route("/patient/<int:patient_id>")
@@ -152,9 +192,12 @@ def patient_view(patient_id):
             a.appointment_date,
             a.appointment_time,
             p.patient_name,
+            p.patient_id,
             d.doctor_name,
             d.experience,
             dept.department_name,
+            a.status,
+            a.doctor_id,
             dept.department_description
         )
         .join(p, a.patient_id == p.patient_id)
@@ -165,34 +208,36 @@ def patient_view(patient_id):
     results = query.all()
 
     return render_template("patient.html", patient=Patient.query.filter_by(patient_id=patient_id).first(),
-                           departments=Department.query.all(), appointments=results)
+                           departments=Department.query.all(), appointments=results,
+                           treatment=Treatments.query.filter_by(patient_id=patient_id).all())
 
 
 @app.route("/doctor/<int:doctor_id>")
 def doctor_view(doctor_id):
-    patients = (
-        db.session.query(Patient.patient_name, Appointments.appointment_date, Appointments.appointment_time,
-                         Appointments.appointment_id)
-        .join(Appointments, Patient.patient_id == Appointments.patient_id)
-        .filter(Appointments.doctor_id == doctor_id)
-        .all()
-    )
+    booked_appointment = db.session.query(
+        Patient.patient_name,
+        Patient.patient_id,
+        Appointments.appointment_date,
+        Appointments.appointment_id,
+        Appointments.appointment_time,
+        Appointments.status
+    ).join(Appointments, Patient.patient_id == Appointments.patient_id).filter(
+        Appointments.doctor_id == doctor_id)
     dr = Doctor.query.filter_by(doctor_id=doctor_id).first()
     treatment = (
-        db.session.query(Treatments.appointment_id, Treatments.prescription, Treatments.medicine_dose,
+        db.session.query(Treatments.prescription, Treatments.medicine_dose,
                          Treatments.diagnosis, Treatments.test_done,
-                         Treatments.visit_type).join(Appointments,
-                                                     Treatments.appointment_id == Appointments.appointment_id).filter(
-            Appointments.doctor_id == doctor_id).all())
-    print(treatment)
+                         Treatments.visit_type, Treatments.patient_id).filter(
+            Treatments.doctor_id == doctor_id).all())
     doctors_availability = get_doctor_availability(doctor_id)
-    print(doctors_availability)
+    patients = booked_appointment.group_by(
+        Patient.patient_name,
+        Patient.patient_id)
     return render_template("doctor.html", doctor=dr,
-                           patients=patients,
-                           appointments=Appointments.query.filter_by(doctor_id=doctor_id).all(),
+                           booked_appointment=booked_appointment.filter_by(status='booked').all(),
                            medicine_name=Medicine.query.all(), doctor_dept=Department.query.filter_by(
             department_id=dr.department_id).first().department_name, treatment=treatment,
-                           doctors_availability=doctors_availability)
+                           doctors_availability=doctors_availability, patients=patients)
 
 
 def get_doctor_availability(doctor_id):
@@ -236,24 +281,46 @@ def user_register():
         return render_template("error.html")
 
 
-@app.route("/user/<int:id>/edit", methods=["POST", "GET"])
-def user_edit(id):
-    user = db.session.query(User).get(id)
+@app.route("/doctor/<int:dr_id>/edit", methods=["POST"])
+def doctor_edit(dr_id):
+    doctor = db.session.query(Doctor).get(dr_id)
+    user = User.query.filter_by(id=doctor.user_id).first()
+    print(doctor, user)
     if request.method == "POST":
-        user.username = request.form["username"]
-        user.email = request.form["email"]
+        doctor.experience = request.form["experience"]
+        user.password = request.form["password"]
         db.session.commit()
-        return redirect(url_for("user_list"))
-    return render_template("edit.html", user=user)
+    return redirect(url_for("admin_view"))
 
 
-@app.route("/user/<int:id>/delete")
-def user_delete(id):
-    user = db.get_or_404(User, id)
-    print(user, request.method)
+@app.route("/patient/<int:patient_id>/edit/<string:name_of_user>", methods=["POST"])
+def patient_edit(patient_id, name_of_user):
+    patient = Patient.query.filter_by(patient_id=patient_id).first()
+    user = User.query.filter_by(id=patient.user_id).first()
+    user.password = request.form["password"]
+    db.session.commit()
+    if name_of_user == 'admin':
+        return redirect(url_for("admin_view"))
+    else:
+        return redirect(url_for("patient_view", patient_id=patient_id))
+
+
+@app.route("/patient/<int:user_id>/<int:patient_id>/delete")
+def patient_delete(user_id, patient_id):
+    user = db.get_or_404(User, user_id)
+    patient = db.session.query(Patient).get(patient_id)
+    appointments = Appointments.query.filter_by(patient_id=patient_id).all()
+    for apt in appointments:
+        treatments = Treatments.query.filter_by(patient_id=apt.patient_id).all()
+        for treatment in treatments:
+            db.session.delete(treatment)
+        db.session.delete(apt)
+        db.session.commit()
+    print(user, patient, appointments)
+    db.session.delete(patient)
     db.session.delete(user)
     db.session.commit()
-    return redirect(url_for("user_list"))
+    return redirect(url_for("admin_view"))
 
 
 @app.route("/user/add_doctor", methods=["GET", "POST"])
@@ -278,13 +345,6 @@ def add_doctor():
             status="normal"
         )
         db.session.add(doctor)
-        dept = Department.query.filter_by(department_id=request.form.get('department_id')).first()
-
-        if dept:
-            # Load existing doctor list or create new
-            doctors = json.loads(dept.doctor_list) if dept.doctor_list else []
-            doctors.append(doctor.doctor_id)
-            dept.doctor_list = json.dumps(doctors)
         db.session.commit()
     return render_template("admin_view.html", departments=Department.query.all(),
                            doctors=Doctor.query.all(), patients=Patient.query.all())
@@ -294,16 +354,12 @@ def add_doctor():
 def department(dpt_id, p_id):
     print(dpt_id, p_id)
     dept = Department.query.filter_by(department_id=dpt_id).first()
-    doctor_ids = []
-    if dept and dept.doctor_list:
-        doctor_ids = dept.doctor_list
-    if isinstance(doctor_ids, str):
-        doctor_ids = json.loads(doctor_ids)
+    doctors = Doctor.query.filter(Doctor.department_id == dpt_id)
     list_of_doctors_availability = dict()
-    for dr_id in doctor_ids:
-        list_of_doctors_availability[dr_id] = get_doctor_availability(dr_id)
+    for doctor in doctors:
+        list_of_doctors_availability[doctor.doctor_id] = get_doctor_availability(doctor.doctor_id)
     return render_template("department.html", department=dept, patient=p_id,
-                           doctors=Doctor.query.filter(Doctor.doctor_id.in_(doctor_ids)).all(),
+                           doctors=Doctor.query.filter(Doctor.department_id == dpt_id).all(),
                            doctors_availability=list_of_doctors_availability)
 
 
@@ -318,6 +374,20 @@ def department_add():
         db.session.add(new_department)
         db.session.commit()
     return redirect(url_for("admin_view"))
+
+
+@app.route('/<string:user_type>/<int:appointment_id>/<int:ids>', methods=["POST"])
+def cancel_appointment(user_type, appointment_id, ids):
+    print(appointment_id, ids)
+    if request.method == "POST":
+        appoint = Appointments.query.filter_by(appointment_id=appointment_id).first()
+        appoint.status = 'canceled'
+        db.session.commit()
+        print(appoint)
+    if user_type == "patient":
+        return redirect(url_for("patient_view", patient_id=ids))
+    else:
+        return redirect(url_for("doctor_view", doctor_id=ids))
 
 
 @app.route('/user/<int:pat_id>/<int:dr_id>/<int:dept_id>/book_slot', methods=['POST'])
@@ -340,8 +410,8 @@ def book_appointment(pat_id, dr_id, dept_id):
     return redirect(url_for("patient_view", patient_id=pat_id))
 
 
-@app.route('/diagnose/<int:appointment_id>/<int:dr_id>', methods=['POST'])
-def diagnose(appointment_id, dr_id):
+@app.route('/diagnose/<int:dr_id>/<int:appointment_id>/<int:patient_id>', methods=['POST'])
+def diagnose(dr_id, appointment_id, patient_id):
     m1 = request.form.get('medicines_id1')
     m2 = request.form.get('medicines_id2')
     m3 = request.form.get('medicines_id3')
@@ -355,7 +425,8 @@ def diagnose(appointment_id, dr_id):
     if m3 and d3:
         m3 = m3 + ":" + d3
     treatments = Treatments(
-        appointment_id=appointment_id,
+        doctor_id=dr_id,
+        patient_id=patient_id,
         visit_type=request.form.get('vist_type'),
         test_done=request.form.get('test_done'),
         diagnosis=request.form.get('diagnosis'),
@@ -363,7 +434,10 @@ def diagnose(appointment_id, dr_id):
         medicine_dose=m1 + "," + m2 + "," + m3
     )
     db.session.add(treatments)
+    appointment = Appointments.query.filter_by(appointment_id=appointment_id).first()
+    appointment.status = "completed"
     db.session.commit()
+    print("done")
     return redirect(url_for("doctor_view", doctor_id=dr_id))
 
 
