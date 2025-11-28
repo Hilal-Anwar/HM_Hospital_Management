@@ -1,4 +1,3 @@
-import random
 from datetime import datetime, timedelta
 
 from flask import Flask, render_template, redirect, url_for, request
@@ -76,13 +75,6 @@ with app.app_context():
 def index():
     return render_template("login.html", error=False)
 
-
-@app.route("/users")
-def user_list():
-    users = db.session.execute(db.select(User).order_by(User.id)).scalars()
-    return render_template("list.html", users=users)
-
-
 @app.route("/user/login", methods=["GET", "POST"])
 def login():
     try:
@@ -105,7 +97,7 @@ def login():
         return render_template("error.html")
 
 
-@app.route("/doctor/<int:user_id>/<int:dr_id>/delete")
+@app.route("/doctor/<int:user_id>/<int:dr_id>/delete",methods=["GET", "POST"])
 def doctor_delete(user_id, dr_id):
     user = db.get_or_404(User, user_id)
     doctor = db.session.query(Doctor).get(dr_id)
@@ -117,6 +109,7 @@ def doctor_delete(user_id, dr_id):
             db.session.delete(treatment)
         db.session.delete(apt)
         db.session.commit()
+    DoctorsUnavailability.query.filter_by(doctor_id=dr_id).delete()
     print(user, doctor, appointments)
     db.session.delete(doctor)
     db.session.delete(user)
@@ -474,7 +467,6 @@ def upsert_doctors_unavailability(date_input, doctor_id, slot1=None, slot2=None)
         db.session.add(record)
         print(record.slot1, record.slot2)
     else:
-        # Insert new
         record = DoctorsUnavailability(
             date=date,
             doctor_id=doctor_id,

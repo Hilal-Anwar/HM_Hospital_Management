@@ -1,0 +1,569 @@
+
+openapi: 3.0.3
+info:
+  title: Healthcare Appointment System API
+  version: 1.0.0
+  description: |
+    OpenAPI specification generated from `controller.py`.
+    This API primarily serves server-rendered HTML pages and form submissions.
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+tags:
+  - name: Auth
+  - name: Admin
+  - name: Patients
+  - name: Doctors
+  - name: Departments
+  - name: Appointments
+paths:
+  "/":
+    get:
+      tags: [Auth]
+      summary: Login page
+      description: Render the login page (HTML).
+      responses:
+        "200":
+          description: Login form rendered
+          content:
+            text/html:
+              schema:
+                type: string
+  "/user/login":
+    get:
+      tags: [Auth]
+      summary: Show login form
+      responses:
+        "200":
+          description: Login form rendered
+          content:
+            text/html:
+              schema:
+                type: string
+    post:
+      tags: [Auth]
+      summary: Authenticate user
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required: [username, password]
+      responses:
+        "302":
+          description: Redirect to admin/doctor/patient dashboard
+  "/doctor/{user_id}/{dr_id}/delete":
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: dr_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Admin, Doctors]
+      summary: Delete a doctor and linked user (GET)
+      description: Deletes doctor, user, related appointments, treatments, and unavailability.
+      responses:
+        "302":
+          description: Redirect to admin dashboard
+    post:
+      tags: [Admin, Doctors]
+      summary: Delete a doctor and linked user (POST)
+      description: Same as GET.
+      responses:
+        "302":
+          description: Redirect to admin dashboard
+  "/user/admin":
+    get:
+      tags: [Admin]
+      summary: Admin dashboard
+      description: Render admin view with departments, doctors, patients, appointments, and treatments.
+      responses:
+        "200":
+          description: Admin view rendered
+          content:
+            text/html:
+              schema:
+                type: string
+    post:
+      tags: [Admin]
+      summary: Admin dashboard search/filter
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                valueSearch:
+                  type: string
+              required: [valueSearch]
+      responses:
+        "200":
+          description: Admin view rendered with filter applied
+          content:
+            text/html:
+              schema:
+                type: string
+  "/patient/{patient_id}":
+    parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Patients]
+      summary: Patient dashboard
+      description: Render patient view with appointments and treatments.
+      responses:
+        "200":
+          description: Patient view rendered
+          content:
+            text/html:
+              schema:
+                type: string
+  "/doctor/{doctor_id}":
+    parameters:
+      - name: doctor_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Doctors]
+      summary: Doctor dashboard
+      description: Render doctor view with booked appointments, treatments, department, and availability.
+      responses:
+        "200":
+          description: Doctor view rendered
+          content:
+            text/html:
+              schema:
+                type: string
+  "/user/register":
+    get:
+      tags: [Auth, Patients]
+      summary: Show patient registration form
+      responses:
+        "200":
+          description: Registration form rendered
+          content:
+            text/html:
+              schema:
+                type: string
+    post:
+      tags: [Auth, Patients]
+      summary: Register new patient user
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required: [username, password]
+      responses:
+        "200":
+          description: Patient view rendered after registration
+          content:
+            text/html:
+              schema:
+                type: string
+  "/doctor/{dr_id}/edit":
+    parameters:
+      - name: dr_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags: [Admin, Doctors]
+      summary: Edit doctor
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                experience:
+                  type: string
+                password:
+                  type: string
+              required: [experience, password]
+      responses:
+        "302":
+          description: Redirect to admin view
+  "/patient/{patient_id}/edit/{name_of_user}":
+    parameters:
+      - name: patient_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: name_of_user
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [admin, patient]
+    post:
+      tags: [Patients]
+      summary: Edit patient user password
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+              required: [password]
+      responses:
+        "302":
+          description: Redirect to admin or patient view
+  "/patient/{user_id}/{patient_id}/delete":
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: patient_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Admin, Patients]
+      summary: Delete patient and linked user
+      description: Deletes patient/user and cascades related appointments and treatments.
+      responses:
+        "302":
+          description: Redirect to admin view
+  "/user/add_doctor":
+    get:
+      tags: [Admin, Doctors]
+      summary: Show add doctor form
+      responses:
+        "200":
+          description: Admin view (form) rendered
+          content:
+            text/html:
+              schema:
+                type: string
+    post:
+      tags: [Admin, Doctors]
+      summary: Create doctor user and doctor record
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                doctor_name:
+                  type: string
+                experience:
+                  type: string
+                department_id:
+                  type: integer
+                password:
+                  type: string
+              required: [doctor_name, experience, department_id, password]
+      responses:
+        "200":
+          description: Admin view rendered
+          content:
+            text/html:
+              schema:
+                type: string
+  "/user/{dpt_id}/{p_id}/department":
+    parameters:
+      - name: dpt_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: p_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Departments, Patients]
+      summary: Department page for patient
+      description: Shows doctors in department and their availability for next 7 days.
+      responses:
+        "200":
+          description: Department page rendered
+          content:
+            text/html:
+              schema:
+                type: string
+    post:
+      tags: [Departments, Patients]
+      summary: Department page (POST)
+      description: Same rendering as GET; form-based navigation.
+      responses:
+        "200":
+          description: Department page rendered
+          content:
+            text/html:
+              schema:
+                type: string
+  "/user/dept":
+    post:
+      tags: [Admin, Departments]
+      summary: Add department
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                dept_name:
+                  type: string
+                dept_description:
+                  type: string
+              required: [dept_name, dept_description]
+      responses:
+        "302":
+          description: Redirect to admin view
+  "/{user_type}/{appointment_id}/{ids}":
+    parameters:
+      - name: user_type
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [patient, doctor]
+      - name: appointment_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: ids
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags: [Appointments]
+      summary: Cancel appointment
+      description: Marks appointment as canceled and redirects back to respective view based on `user_type`.
+      responses:
+        "302":
+          description: Redirect to patient or doctor view
+  "/user/{pat_id}/{dr_id}/{dept_id}/book_slot":
+    parameters:
+      - name: pat_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: dr_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: dept_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags: [Appointments]
+      summary: Book appointment slot
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                selected_slot:
+                  type: string
+                  description: |
+                    Combined value of time and date separated by newline, e.g. "10:00 AM\n25-12-2025".
+              required: [selected_slot]
+      responses:
+        "302":
+          description: Redirect to patient view
+  "/diagnose/{dr_id}/{appointment_id}/{patient_id}":
+    parameters:
+      - name: dr_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: appointment_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: patient_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags: [Doctors, Appointments]
+      summary: Submit diagnosis and treatment
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                vist_type:
+                  type: string
+                test_done:
+                  type: string
+                diagnosis:
+                  type: string
+                prescription:
+                  type: string
+                medicines_id1:
+                  type: string
+                  description: Medicine name or ID for entry 1
+                dose_1:
+                  type: string
+                medicines_id2:
+                  type: string
+                  description: Medicine name or ID for entry 2
+                dose_2:
+                  type: string
+                medicines_id3:
+                  type: string
+                  description: Medicine name or ID for entry 3
+                dose_3:
+                  type: string
+              required: [diagnosis]
+      responses:
+        "302":
+          description: Redirect to doctor view; appointment marked completed
+  "/doctor/book_slot/{dr_id}":
+    parameters:
+      - name: dr_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags: [Doctors]
+      summary: Toggle doctor unavailability for selected slots
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                selected_slot:
+                  type: array
+                  items:
+                    type: string
+                    description: |
+                      Values like "slot1\n25-12-2025" or "slot2\n25-12-2025".
+              required: [selected_slot]
+      responses:
+        "302":
+          description: Redirect to doctor view
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        username: { type: string }
+        password: { type: string }
+        type:
+          type: string
+          enum: [admin, doctor, patient]
+    Department:
+      type: object
+      properties:
+        department_id: { type: integer }
+        department_name: { type: string }
+        department_description: { type: string }
+    Doctor:
+      type: object
+      properties:
+        doctor_id: { type: integer }
+        user_id: { type: integer }
+        doctor_name: { type: string }
+        department_id: { type: integer }
+        experience: { type: string }
+        status: { type: string }
+    Patient:
+      type: object
+      properties:
+        patient_id: { type: integer }
+        user_id: { type: integer }
+        patient_name: { type: string }
+        status: { type: string }
+    Appointment:
+      type: object
+      properties:
+        appointment_id: { type: integer }
+        patient_id: { type: integer }
+        doctor_id: { type: integer }
+        department_id: { type: integer }
+        status:
+          type: string
+          enum: [booked, completed, canceled]
+        appointment_date:
+          type: string
+          format: date
+        appointment_time: { type: string }
+    Medicine:
+      type: object
+      properties:
+        medicine_id: { type: integer }
+        medicine_name: { type: string }
+        department_id: { type: integer }
+    Treatment:
+      type: object
+      properties:
+        treatment_id: { type: integer }
+        doctor_id: { type: integer }
+        patient_id: { type: integer }
+        visit_type: { type: string }
+        test_done: { type: string }
+        diagnosis: { type: string }
+        prescription: { type: string }
+        medicine_dose: { type: string }
+    DoctorsUnavailability:
+      type: object
+      properties:
+        id: { type: integer }
+        date: { type: string, format: date }
+        doctor_id: { type: integer }
+        slot1:
+          type: integer
+          description: 1 means available, 0 means unavailable
+          enum: [0, 1]
+        slot2:
+          type: integer
+          description: 1 means available, 0 means unavailable
+          enum: [0, 1]

@@ -120,9 +120,11 @@
                         aria-label="Back"></button>
             </div>
             <div class="modal-body">
+                {% set ns = namespace(dr=[]) %}
                 {% for apt in appointments %}
-                    {% if apt.status!='canceled' %}
-                        <h3>Treatment {{ loop.index }}({{ apt.appointment_date }})</h3>
+                    {% if apt.status=='completed' and apt.doctor_id not in ns.dr %}
+                        {% set ns.dr = ns.dr + [apt.doctor_id] %}
+                        <h3>Treatment</h3>
                         <p class="text-start">Patient Name: {{ apt.patient_name }}</p>
                         <p class="text-start">Doctors' Name: {{ apt.doctor_name }}</p>
                         <p class="text-start">Department: {{ apt.department_name }}</p>
