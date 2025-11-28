@@ -90,16 +90,16 @@
                                         <!-- Left: text -->
                                         <div class="col-12 col-md-8">
                                             <div class="doctor-title">{{ dr['doctor_name'] }}</div>
-                                            <div class="doctor-subtitle">MBBS, DM – Medical Oncology</div>
-                                            <div class="doctor-subtitle">Medical Oncologist</div>
+                                            <div class="doctor-subtitle">MBBS, DM – Medical {{ department.department_name }}</div>
+                                            <div class="doctor-subtitle">Medical {{ department.department_name }}st</div>
                                             <div class="doctor-subtitle mt-2">
                                                 <strong>{{ dr['experience'] }} Years Experience Overall</strong> <span
                                                     class="text-muted"></span>
                                             </div>
 
                                             <p class="doctor-desc mb-0">
-                                                Dr. mnop is a Medical Oncologist in India and has an experience of
-                                                20 years in this field.
+                                                Dr. {{ dr['doctor_name'] }} is a Medical {{ department.department_name }}st in India and has an experience of
+                                                several years in this field.
                                             </p>
                                         </div>
                                     </div>

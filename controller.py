@@ -450,7 +450,7 @@ def save_unavailability(dr_id):
             upsert_doctors_unavailability(slot.split('|')[1], dr_id, slot1=0)
         if slot.split('|')[0] == 'slot2':
             upsert_doctors_unavailability(slot.split('|')[1], dr_id, slot2=0)
-    return "😂😘❤️"
+    return redirect(url_for("doctor_view", doctor_id=dr_id))
 
 
 def upsert_doctors_unavailability(date_input, doctor_id, slot1=None, slot2=None):
